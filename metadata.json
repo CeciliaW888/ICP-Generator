@@ -1,0 +1,5 @@
+{
+  "name": "ICP Generator",
+  "description": "Intelligent Ideal Customer Profile generator for industrial safety sales, powered by Gemini and live web intelligence.",
+  "requestFramePermissions": []
+}
