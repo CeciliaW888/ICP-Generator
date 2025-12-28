@@ -25,7 +25,7 @@ To build an intelligent, real-time "Ideal Customer Profile" (ICP) generator for 
 ## 3. Future Roadmap
 
 ### Phase 2: Persistence & User context
-- [ ] **Authentication:** Replace hardcoded user mock (`cecilia.wangl`) with real SSO/Auth0 integration.
+- [ ] **Authentication:** Replace hardcoded user mock (`cecilia.wang`) with real SSO/Auth0 integration.
 - [ ] **History:** Store generated profiles in a database (Supabase/Firebase) so users can revisit previous searches.
 - [ ] **Export:** Add "Export to PDF" or "Export to CRM" (Salesforce integration).
 
