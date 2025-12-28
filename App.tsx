@@ -27,7 +27,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Mock logged-in user email updated for test
-  const userEmail = "cecilia.wangl@blackwoods.com.au";
+  const userEmail = "cecilia.wang@blackwoods.com.au";
   const userInitials = getInitials(userEmail);
 
   const isDemoMode = !process.env.API_KEY;
