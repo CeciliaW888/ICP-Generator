@@ -154,7 +154,7 @@ const MOCKS: Record<string, ICPData> = {
   }
 };
 
-const getMockData = (query: string): GeneratedICPResponse => {
+const getMockData = (query: string, isFallback: boolean = false): GeneratedICPResponse => {
   const lowerQ = query.toLowerCase();
   let data = MOCKS.DEFAULT;
   
@@ -174,7 +174,8 @@ const getMockData = (query: string): GeneratedICPResponse => {
 
   return {
     data: responseData,
-    sources: MOCK_SOURCES
+    sources: MOCK_SOURCES,
+    isFallback
   };
 };
 
@@ -277,7 +278,7 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
     console.warn("No API Key detected. Returning Demo Data.");
     // Simulate network delay for realism
     await new Promise(resolve => setTimeout(resolve, 1500));
-    return getMockData(query);
+    return getMockData(query, false);
   }
 
   try {
@@ -328,12 +329,13 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
 
     return {
       data: parsedData,
-      sources: sources
+      sources: sources,
+      isFallback: false
     };
 
   } catch (error) {
     console.error("Error generating ICP:", error);
     // FALLBACK: If API fails (e.g. quota, network), return Mock Data
-    return getMockData(query);
+    return getMockData(query, true);
   }
 };

@@ -53,4 +53,5 @@ export interface GroundingSource {
 export interface GeneratedICPResponse {
   data: ICPData | null;
   sources: GroundingSource[];
+  isFallback?: boolean;
 }

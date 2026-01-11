@@ -72,12 +72,18 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
+          // Only attempt detailed logging in development environments
+          const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          
           navigator.serviceWorker.register('/service-worker.js')
             .then(registration => {
-              console.log('ServiceWorker registration successful');
+              if (isDev) console.log('ServiceWorker registration successful');
             })
             .catch(err => {
-              console.log('ServiceWorker registration failed: ', err);
+              // Suppress errors in preview environments where origin mismatch is expected
+              if (isDev) {
+                console.log('ServiceWorker registration failed: ', err);
+              }
             });
         });
       }

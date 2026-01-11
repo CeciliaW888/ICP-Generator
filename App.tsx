@@ -3,7 +3,7 @@ import { SearchForm } from './components/SearchForm';
 import { ICPResult } from './components/ICPResult';
 import { generateICP } from './services/gemini';
 import { ICPData, GroundingSource } from './types';
-import { LayoutDashboard, WifiOff } from 'lucide-react';
+import { LayoutDashboard, WifiOff, AlertTriangle } from 'lucide-react';
 import { Logo } from './components/Logo';
 
 // Helper to extract initials from email (e.g., "john.doe@company.com" -> "JD")
@@ -25,6 +25,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [icpData, setIcpData] = useState<ICPData | null>(null);
   const [sources, setSources] = useState<GroundingSource[]>([]);
+  const [isFallbackMode, setIsFallbackMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Mock logged-in user email updated for test
@@ -38,12 +39,14 @@ const App: React.FC = () => {
     setError(null);
     setIcpData(null);
     setSources([]);
+    setIsFallbackMode(false);
 
     try {
       const result = await generateICP(query);
       if (result.data) {
         setIcpData(result.data);
         setSources(result.sources);
+        setIsFallbackMode(!!result.isFallback);
       } else {
         setError("Could not generate a valid profile from the gathered data. Please try a more specific query.");
       }
@@ -97,6 +100,21 @@ const App: React.FC = () => {
              </div>
           )}
         </div>
+
+        {/* Fallback Warning Banner */}
+        {isFallbackMode && icpData && (
+          <div className="max-w-7xl mx-auto px-4 mb-6">
+            <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded shadow-sm flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                <div>
+                    <p className="font-bold text-orange-800 text-sm">Live Generation Failed</p>
+                    <p className="text-orange-700 text-sm">
+                        The AI service is currently unavailable or encountered an error. Showing <span className="font-semibold">Demo Data</span> instead.
+                    </p>
+                </div>
+            </div>
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
