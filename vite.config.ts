@@ -10,8 +10,7 @@ export default defineConfig(({ mode }) => {
       host: true, // Exposes the server to your local network (0.0.0.0)
     },
     define: {
-      // Polyfill process.env.API_KEY so the existing code works
-      'process.env.API_KEY': JSON.stringify(env.API_KEY),
+      // Polyfill removed in favor of import.meta.env.VITE_API_KEY
     },
   };
 });

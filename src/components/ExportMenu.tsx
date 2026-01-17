@@ -38,11 +38,11 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ data, elementRef }) => {
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
-        ignoreElements: (el) => el.classList.contains('no-export'),
+        ignoreElements: (el: HTMLElement) => el.classList.contains('no-export'),
         // Ensure we capture the full scroll height of the element if it has overflow, 
         // though typically we are capturing a non-scrolling div on the page.
         // scrollY: -window.scrollY // sometimes needed if not scrolling to top, but we are.
-      });
+      } as any);
     } catch (e) {
       console.error("Canvas capture error:", e);
       throw e;

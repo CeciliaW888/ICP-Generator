@@ -157,7 +157,7 @@ const MOCKS: Record<string, ICPData> = {
 const getMockData = (query: string, isFallback: boolean = false): GeneratedICPResponse => {
   const lowerQ = query.toLowerCase();
   let data = MOCKS.DEFAULT;
-  
+
   if (lowerQ.includes('mine') || lowerQ.includes('mining') || lowerQ.includes('bhp') || lowerQ.includes('rio')) {
     data = MOCKS.MINING;
   } else if (lowerQ.includes('construct') || lowerQ.includes('build') || lowerQ.includes('infrastructure')) {
@@ -166,10 +166,10 @@ const getMockData = (query: string, isFallback: boolean = false): GeneratedICPRe
 
   // Deep copy to allow modification if needed without affecting const
   const responseData = JSON.parse(JSON.stringify(data));
-  
+
   // Customise the name slightly to make it feel responsive
   if (!responseData.targetName.includes(query)) {
-     responseData.targetName = `${query} (Demo Result)`;
+    responseData.targetName = `${query} (Demo Result)`;
   }
 
   return {
@@ -185,7 +185,7 @@ const getMockData = (query: string, isFallback: boolean = false): GeneratedICPRe
 
 // Guideline: Always use new GoogleGenAI({apiKey: process.env.API_KEY})
 // Using process.env.API_KEY directly in initialization
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = import.meta.env.VITE_API_KEY ? new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY }) : null;
 
 const ICP_SCHEMA = {
   type: Type.OBJECT,
@@ -248,18 +248,18 @@ const ICP_SCHEMA = {
       }
     },
     recommendedApproach: {
-        type: Type.ARRAY,
-        items: { type: Type.STRING },
-        description: "Strategic advice for sales reps (e.g. Lead with compliance value)"
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      description: "Strategic advice for sales reps (e.g. Lead with compliance value)"
     },
     productFit: {
-        type: Type.OBJECT,
-        properties: {
-            highPriority: { type: Type.ARRAY, items: { type: Type.STRING } },
-            mediumPriority: { type: Type.ARRAY, items: { type: Type.STRING } },
-            crossSell: { type: Type.ARRAY, items: { type: Type.STRING } }
-        },
-        required: ["highPriority", "mediumPriority", "crossSell"]
+      type: Type.OBJECT,
+      properties: {
+        highPriority: { type: Type.ARRAY, items: { type: Type.STRING } },
+        mediumPriority: { type: Type.ARRAY, items: { type: Type.STRING } },
+        crossSell: { type: Type.ARRAY, items: { type: Type.STRING } }
+      },
+      required: ["highPriority", "mediumPriority", "crossSell"]
     },
     competitorProducts: {
       type: Type.ARRAY,
@@ -274,7 +274,10 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
   // FALLBACK: If no API Key, return Mock Data immediately
   // Guideline: Check process.env.API_KEY validity before making calls if needed, 
   // though typically application should handle auth. Here we support Demo Mode.
-  if (!process.env.API_KEY) {
+  // FALLBACK: If no API Key, return Mock Data immediately
+  // Guideline: Check process.env.API_KEY validity before making calls if needed, 
+  // though typically application should handle auth. Here we support Demo Mode.
+  if (!import.meta.env.VITE_API_KEY) {
     console.warn("No API Key detected. Returning Demo Data.");
     // Simulate network delay for realism
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -301,6 +304,8 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
       If the query is a segment (e.g., "Mid-tier Construction in Victoria"), generate a representative profile based on top players in that space.
     `;
 
+    if (!ai) throw new Error("AI client not initialized");
+
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: prompt,
@@ -313,7 +318,7 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
 
     const jsonText = response.text;
     let parsedData: ICPData | null = null;
-    
+
     if (jsonText) {
       try {
         parsedData = JSON.parse(jsonText);

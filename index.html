@@ -1,54 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ICP Generator</title>
-    
-    <!-- PWA Configuration -->
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#002452" />
-    
-    <!-- FAVICONS: Explicitly link to the icons in public/icons -->
-    <link rel="icon" type="image/png" href="/icons/icon-192.png" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-    
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              brand: '#002452',
-            },
-            keyframes: {
-              'fade-in-up': {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              }
-            },
-            animation: {
-              'fade-in-up': 'fade-in-up 0.5s ease-out',
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ICP Generator</title>
+
+  <!-- PWA Configuration -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#002452" />
+
+  <!-- FAVICONS: Explicitly link to the icons in public/icons -->
+  <link rel="icon" type="image/png" href="/icons/icon-58.png" />
+
+  <!-- ios support-->
+  <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+  <meta name="apple-mobile-web-app-title" content="#002452" />
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#002452',
+          },
+          keyframes: {
+            'fade-in-up': {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
             }
+          },
+          animation: {
+            'fade-in-up': 'fade-in-up 0.5s ease-out',
           }
         }
       }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+    }
+
+    @media print {
       body {
-        font-family: 'Inter', sans-serif;
-        background-color: #f3f4f6;
+        background-color: white;
       }
-      @media print {
-        body { background-color: white; }
-        nav, .no-print { display: none !important; }
-        main { padding: 0 !important; }
+
+      nav,
+      .no-print {
+        display: none !important;
       }
-    </style>
+
+      main {
+        padding: 0 !important;
+      }
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -66,27 +80,29 @@
 }
 </script>
 </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          // Only attempt detailed logging in development environments
-          const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          
-          navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-              if (isDev) console.log('ServiceWorker registration successful');
-            })
-            .catch(err => {
-              // Suppress errors in preview environments where origin mismatch is expected
-              if (isDev) {
-                console.log('ServiceWorker registration failed: ', err);
-              }
-            });
-        });
-      }
-    </script>
-  </body>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/index.tsx"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        // Only attempt detailed logging in development environments
+        const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            if (isDev) console.log('ServiceWorker registration successful');
+          })
+          .catch(err => {
+            // Suppress errors in preview environments where origin mismatch is expected
+            if (isDev) {
+              console.log('ServiceWorker registration failed: ', err);
+            }
+          });
+      });
+    }
+  </script>
+</body>
+
 </html>
