@@ -13,7 +13,9 @@ import {
   Package,
   Target,
   Lightbulb,
-  Clock
+  Clock,
+  Save,
+  Check
 } from 'lucide-react';
 import { ICPData, GroundingSource } from '../types';
 import { ExportMenu } from './ExportMenu';
@@ -21,10 +23,20 @@ import { ExportMenu } from './ExportMenu';
 interface ICPResultProps {
   data: ICPData;
   sources: GroundingSource[];
+  onSave?: () => void;
 }
 
-export const ICPResult: React.FC<ICPResultProps> = ({ data, sources }) => {
+export const ICPResult: React.FC<ICPResultProps> = ({ data, sources, onSave }) => {
   const componentRef = useRef<HTMLDivElement>(null);
+  const [isSaved, setIsSaved] = React.useState(false);
+
+  const handleSaveClick = () => {
+    if (onSave) {
+      onSave();
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000); // Reset after 2s
+    }
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 pb-20 animate-fade-in-up">
@@ -44,8 +56,23 @@ export const ICPResult: React.FC<ICPResultProps> = ({ data, sources }) => {
             <p className="text-gray-500 mt-2 max-w-3xl">{data.summary}</p>
           </div>
 
-          {/* Export Button - Marked as no-export to be excluded from screenshots */}
-          <div className="flex-shrink-0 no-export">
+          {/* Export & Save Buttons */}
+          <div className="flex-shrink-0 no-export flex items-center gap-2">
+
+            {onSave && (
+              <button
+                onClick={handleSaveClick}
+                disabled={isSaved}
+                className={`inline-flex items-center gap-2 justify-center rounded-lg border shadow-sm px-4 py-2.5 text-sm font-medium transition-all ${isSaved
+                  ? 'bg-green-50 border-green-200 text-green-700'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+              >
+                {isSaved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4 text-gray-500" />}
+                <span>{isSaved ? 'Saved!' : 'Save Profile'}</span>
+              </button>
+            )}
+
             <ExportMenu data={data} elementRef={componentRef} />
           </div>
         </div>
@@ -175,8 +202,8 @@ export const ICPResult: React.FC<ICPResultProps> = ({ data, sources }) => {
                       <div className="flex justify-between items-start mb-1">
                         <span className="font-semibold text-gray-900 text-sm">{signal.signal}</span>
                         <span className={`px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-full ${signal.urgency === 'High' ? 'bg-red-100 text-red-700' :
-                            signal.urgency === 'Medium' ? 'bg-amber-100 text-amber-700' :
-                              'bg-green-100 text-green-700'
+                          signal.urgency === 'Medium' ? 'bg-amber-100 text-amber-700' :
+                            'bg-green-100 text-green-700'
                           }`}>
                           {signal.urgency}
                         </span>
