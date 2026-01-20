@@ -44,7 +44,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
           <button
             type="submit"
             disabled={isLoading || !query.trim()}
-            className="absolute right-2 top-2 h-10 w-10 bg-amber-500 hover:bg-amber-600 text-white rounded-lg flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute right-2 top-2 h-10 w-10 bg-brand hover:bg-brand-hover text-white rounded-lg flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -62,7 +62,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
                 key={idx}
                 onClick={() => {
                   setQuery(suggestion);
-                  if(!isLoading) onSearch(suggestion);
+                  if (!isLoading) onSearch(suggestion);
                 }}
                 disabled={isLoading}
                 className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 text-sm rounded-md border border-gray-200 transition-colors text-left"

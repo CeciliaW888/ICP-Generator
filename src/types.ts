@@ -23,6 +23,13 @@ export interface DecisionMaker {
   role: string;
   priorities: string[];
   painPoints: string[];
+  // Initial Generation Data for Specific Companies
+  name?: string;
+  linkedIn?: string;
+  // Enrichment Data
+  enrichedName?: string;
+  enrichedLinkedIn?: string;
+  enrichedContext?: string;
 }
 
 export interface ProductFit {

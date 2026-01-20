@@ -241,6 +241,8 @@ const ICP_SCHEMA = {
         type: Type.OBJECT,
         properties: {
           role: { type: Type.STRING },
+          name: { type: Type.STRING, description: "Real name of the person if a specific company is queried. Otherwise leave blank." },
+          linkedIn: { type: Type.STRING, description: "LinkedIn URL if found." },
           priorities: { type: Type.ARRAY, items: { type: Type.STRING } },
           painPoints: { type: Type.ARRAY, items: { type: Type.STRING } },
         },
@@ -296,7 +298,11 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
       2. Operational Indicators: Safety risks, compliance needs (AS/NZS standards), and operating complexity (FIFO, 24/7 shifts, Remote Logistics).
       3. Key Pain Points: What keeps them awake at night regarding safety and supply?
       4. Buying Signals: Recent news, project announcements, tender awards, or safety incidents in the last 12 months.
-      5. Decision Makers: Who buys safety gear?
+      5. Decision Makers: Who buys safety gear? 
+         **IMPORTANT**: 
+         - If the query is a **Specific Company** (e.g. "BHP", "Woolworths"), FIND THE REAL NAMES of the people currently in these roles and their LinkedIn links. 
+         - **CRITICAL**: Check the search results carefully. If you find a LinkedIn profile URL for the person, USE IT. If you absolutely cannot find it, return "SEARCH".
+         - If the query is a **Generic Industry/Segment** (e.g. "Mining", "Construction"), **DO NOT** generate names or links. Leave the 'name' and 'linkedIn' fields empty. Return Job Titles only.
       6. Recommended Approach: How should a sales rep pitch to this account?
       7. Product Fit: Categorize products into High Priority, Medium Priority, and Cross-sell opportunities.
       
@@ -342,5 +348,79 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
     console.error("Error generating ICP:", error);
     // FALLBACK: If API fails (e.g. quota, network), return Mock Data
     return getMockData(query, true);
+  }
+};
+
+export const enrichRole = async (companyName: string, roleTitle: string): Promise<{ name: string; linkedin: string; context: string } | null> => {
+  if (!import.meta.env.VITE_API_KEY || !ai) {
+    console.warn("No API Key or AI client. Skipping enrichment.");
+    return { name: "John Doe (Demo)", linkedin: "#", context: "Demo Mode - No API Key" };
+  }
+
+  try {
+    const prompt = `
+      Find the current person holding the role of "${roleTitle}" (or closest equivalent senior executive) at "${companyName}" in Australia/New Zealand.
+      
+      Return a JSON object with:
+      - "name": Full Name
+      - "linkedin": Public LinkedIn Profile URL. 
+        **CRITICAL**: 
+        - Return "SEARCH" if you do not find the *exact* URL in the search results. 
+        - **DO NOT GUESS** or construct URLs (e.g. do not guess "linkedin.com/in/firstname-lastname").
+        - It is better to return "SEARCH" than a broken link.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-pro-preview',
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING },
+            linkedin: { type: Type.STRING },
+            context: { type: Type.STRING }
+          },
+          required: ["name", "linkedin", "context"]
+        }
+      },
+    });
+
+    const text = response.text;
+    if (!text) return null;
+
+    const parsed = JSON.parse(text);
+
+    // GROUNDING: Check if we found a better link in the actual search results
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const linkedinSource = groundingChunks
+      .map((c: any) => c.web?.uri)
+      .find((uri: string) =>
+        uri &&
+        uri.includes("linkedin.com") &&
+        !uri.includes("/company/") &&
+        !uri.includes("/jobs/") &&
+        !uri.includes("/school/") &&
+        !uri.includes("/pulse/") &&
+        !uri.includes("/dir/")
+      );
+
+    // If the model gave up (SEARCH) or passed a generic link, but we found a REAL one in sources, use it.
+    if (linkedinSource) {
+      // If model returned SEARCH, 'Not Found', or a different link, prefer the grounded one
+      // We trust the search result source more than the generated text for URLs
+      if (parsed.linkedin === 'SEARCH' || parsed.linkedin === 'Not Found' || !parsed.linkedin || parsed.linkedin.includes('linkedin.com')) {
+        console.log(`Grounding: Replaced ${parsed.linkedin} with ${linkedinSource}`);
+        parsed.linkedin = linkedinSource;
+        parsed.context = `${parsed.context} (Verified via Search)`;
+      }
+    }
+
+    return parsed;
+  } catch (error) {
+    console.error("Enrichment failed:", error);
+    return null;
   }
 };

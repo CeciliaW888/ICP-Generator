@@ -15,10 +15,14 @@ import {
   Lightbulb,
   Clock,
   Save,
-  Check
+  Check,
+  Search,
+  Linkedin,
+  Loader2
 } from 'lucide-react';
-import { ICPData, GroundingSource } from '../types';
+import { ICPData, GroundingSource, DecisionMaker } from '../types';
 import { ExportMenu } from './ExportMenu';
+import { enrichRole } from '../services/gemini';
 
 interface ICPResultProps {
   data: ICPData;
@@ -30,11 +34,43 @@ export const ICPResult: React.FC<ICPResultProps> = ({ data, sources, onSave }) =
   const componentRef = useRef<HTMLDivElement>(null);
   const [isSaved, setIsSaved] = React.useState(false);
 
+  // Local state to manage decision makers since we enrich them progressively
+  const [decisionMakers, setDecisionMakers] = React.useState<DecisionMaker[]>(data.decisionMakers);
+  const [enrichingRoleIndex, setEnrichingRoleIndex] = React.useState<number | null>(null);
+
+  // Sync with prop updates
+  React.useEffect(() => {
+    setDecisionMakers(data.decisionMakers);
+  }, [data]);
+
   const handleSaveClick = () => {
     if (onSave) {
       onSave();
       setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 2000); // Reset after 2s
+      setTimeout(() => setIsSaved(false), 2000);
+    }
+  };
+
+  const handleEnrich = async (index: number, role: string) => {
+    setEnrichingRoleIndex(index);
+    try {
+      const result = await enrichRole(data.targetName, role);
+      if (result) {
+        setDecisionMakers(prev => {
+          const updated = [...prev];
+          updated[index] = {
+            ...updated[index],
+            enrichedName: result.name,
+            enrichedLinkedIn: result.linkedin,
+            enrichedContext: result.context
+          };
+          return updated;
+        });
+      }
+    } catch (e) {
+      console.error("Enrichment failed", e);
+    } finally {
+      setEnrichingRoleIndex(null);
     }
   };
 
@@ -262,21 +298,80 @@ export const ICPResult: React.FC<ICPResultProps> = ({ data, sources, onSave }) =
                   Decision Makers
                 </h3>
                 <div className="space-y-6">
-                  {data.decisionMakers.map((dm, idx) => (
-                    <div key={idx} className="relative pl-4 border-l-2 border-purple-200">
-                      <h4 className="font-bold text-gray-900 text-sm">{dm.role}</h4>
-                      <div className="mt-1 space-y-1">
-                        <div>
-                          <span className="text-[10px] font-semibold text-gray-500 uppercase">Priorities</span>
-                          <div className="flex flex-wrap gap-1 mt-0.5">
-                            {dm.priorities.map((p, i) => (
-                              <span key={i} className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">{p}</span>
-                            ))}
+                  {decisionMakers.map((dm, idx) => {
+                    const displayName = dm.enrichedName || dm.name;
+                    const rawLink = dm.enrichedLinkedIn || dm.linkedIn;
+
+                    // Construct a safe link
+                    let safeLink = '#';
+                    const isSearchFallback = rawLink === 'SEARCH' || rawLink === 'Not Found' || !rawLink || !rawLink.startsWith('http');
+
+                    if (isSearchFallback && displayName) {
+                      // Create a Google Search URL if we don't have a direct link
+                      safeLink = `https://www.google.com/search?q=${encodeURIComponent(`${displayName} ${data.targetName} LinkedIn`)}`;
+                    } else if (rawLink) {
+                      safeLink = rawLink;
+                    }
+
+                    const hasLink = safeLink !== '#';
+
+                    return (
+                      <div key={idx} className="relative pl-4 border-l-2 border-purple-200">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-bold text-gray-900 text-sm">{dm.role}</h4>
+
+                          {!displayName ? (
+                            <button
+                              onClick={() => handleEnrich(idx, dm.role)}
+                              disabled={enrichingRoleIndex === idx}
+                              className="text-xs flex items-center gap-1 text-purple-600 font-medium hover:bg-purple-50 px-2 py-1 rounded transition-colors"
+                            >
+                              {enrichingRoleIndex === idx ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Search className="w-3 h-3" />
+                              )}
+                              {enrichingRoleIndex === idx ? 'Finding...' : 'Find'}
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xs font-bold px-1.5 py-0.5 rounded border flex items-center gap-1 ${hasLink
+                                ? "bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 hover:border-blue-200 cursor-pointer"
+                                : "bg-green-50 text-gray-800 border-green-100"
+                                }`}>
+                                <Check className="w-3 h-3 text-green-600" />
+                                {hasLink ? (
+                                  <a
+                                    href={safeLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:underline flex items-center gap-1"
+                                    title={isSearchFallback ? "Search on Google" : "View LinkedIn Profile"}
+                                  >
+                                    {displayName}
+                                    {isSearchFallback ? <Search className="w-3 h-3" /> : <Linkedin className="w-3 h-3" />}
+                                  </a>
+                                ) : (
+                                  <span>{displayName}</span>
+                                )}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-1 space-y-1">
+                          <div>
+                            <span className="text-[10px] font-semibold text-gray-500 uppercase">Priorities</span>
+                            <div className="flex flex-wrap gap-1 mt-0.5">
+                              {dm.priorities.map((p, i) => (
+                                <span key={i} className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">{p}</span>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
