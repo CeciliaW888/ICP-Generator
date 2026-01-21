@@ -61,6 +61,7 @@
       height: 100%;
       background-color: #002452;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 9999;
@@ -72,25 +73,161 @@
       pointer-events: none;
     }
 
-    .splash-logo {
-      width: 80px;
-      height: 80px;
-      border-radius: 1rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    .logo-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 3rem;
     }
 
-    @keyframes pulse {
+    .splash-logo {
+      width: 96px;
+      height: 96px;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 2;
+      /* Entrance: Drop & Squash. Loop: Gentle Hover */
+      animation: dropIn 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards,
+        hoverLoop 3s ease-in-out 1.2s infinite;
+    }
+
+    .shadow {
+      width: 80px;
+      height: 20px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 50%;
+      position: absolute;
+      bottom: -10px;
+      z-index: 1;
+      filter: blur(4px);
+      animation: shadowScale 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards,
+        shadowHover 3s ease-in-out 1.2s infinite;
+    }
+
+    .splash-text {
+      position: absolute;
+      bottom: 8%;
+      width: 100%;
+      font-family: 'Inter', sans-serif;
+      color: #ffffff;
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-align: center;
+      line-height: 1.5;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 1s ease-out 0.8s backwards;
+      padding: 0 20px;
+    }
+
+    /* Squash and Stretch Drop */
+    @keyframes dropIn {
+      0% {
+        transform: translateY(-300px) scale(0.8, 1.2);
+        opacity: 0;
+      }
+
+      30% {
+        transform: translateY(10px) scale(1.3, 0.7);
+        opacity: 1;
+      }
+
+      /* Hit floor & Squash */
+      45% {
+        transform: translateY(-40px) scale(0.9, 1.1);
+      }
+
+      /* Rebound 1 */
+      60% {
+        transform: translateY(0) scale(1.05, 0.95);
+      }
+
+      /* Land 1 */
+      75% {
+        transform: translateY(-10px) scale(0.98, 1.02);
+      }
+
+      /* Rebound 2 */
+      100% {
+        transform: translateY(0) scale(1);
+      }
+
+      /* Settle */
+    }
+
+    /* Shadow Logic to match Drop */
+    @keyframes shadowScale {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+
+      30% {
+        transform: scale(1.4);
+        opacity: 0.8;
+      }
+
+      /* Hit floor - shadow biggest/darkest */
+      45% {
+        transform: scale(0.8);
+        opacity: 0.4;
+      }
+
+      /* Rebound */
+      60% {
+        transform: scale(1);
+        opacity: 0.6;
+      }
+
+      75% {
+        transform: scale(0.9);
+        opacity: 0.5;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 0.6;
+      }
+    }
+
+    /* Intelligent Hover Loop */
+    @keyframes hoverLoop {
 
       0%,
       100% {
-        opacity: 1;
-        transform: scale(1);
+        transform: translateY(0);
       }
 
       50% {
-        opacity: .8;
-        transform: scale(0.95);
+        transform: translateY(-8px);
+      }
+    }
+
+    @keyframes shadowHover {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.6;
+      }
+
+      50% {
+        transform: scale(0.85);
+        opacity: 0.4;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
 
@@ -131,7 +268,13 @@
 <body>
   <!-- Splash Screen -->
   <div id="splash">
-    <img src="/icons/icon-180.png" alt="Blackwoods" class="splash-logo" />
+    <div class="logo-container">
+      <div class="shadow"></div>
+      <img src="/icons/icon-180.png" alt="Blackwoods" class="splash-logo" />
+    </div>
+    <p class="splash-text">
+      Brought to you by Blackwoods<br>Data & Analytics CoE
+    </p>
   </div>
 
   <div id="root"></div>
