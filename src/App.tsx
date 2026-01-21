@@ -274,12 +274,20 @@ const App: React.FC = () => {
               </div>
             )}
 
+
+
             {/* Results */}
             {icpData && !loading && (
               <ICPResult data={icpData} sources={sources} onSave={handleSave} />
             )}
           </>
         )}
+        {/* Footer - Global */}
+        <div className="mt-12 mb-6 text-center">
+          <p className="text-gray-400 text-xs font-medium">
+            Brought to you by Blackwoods Data & Analytics CoE
+          </p>
+        </div>
       </main>
     </div>
   );

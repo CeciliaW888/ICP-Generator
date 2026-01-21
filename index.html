@@ -134,30 +134,24 @@
         opacity: 1;
       }
 
-      /* Hit floor & Squash */
       45% {
         transform: translateY(-40px) scale(0.9, 1.1);
       }
 
-      /* Rebound 1 */
       60% {
         transform: translateY(0) scale(1.05, 0.95);
       }
 
-      /* Land 1 */
       75% {
         transform: translateY(-10px) scale(0.98, 1.02);
       }
 
-      /* Rebound 2 */
       100% {
         transform: translateY(0) scale(1);
       }
-
-      /* Settle */
     }
 
-    /* Shadow Logic to match Drop */
+    /* Shadow Logic */
     @keyframes shadowScale {
       0% {
         transform: scale(0.5);
@@ -169,13 +163,11 @@
         opacity: 0.8;
       }
 
-      /* Hit floor - shadow biggest/darkest */
       45% {
         transform: scale(0.8);
         opacity: 0.4;
       }
 
-      /* Rebound */
       60% {
         transform: scale(1);
         opacity: 0.6;
@@ -288,7 +280,7 @@
           setTimeout(() => {
             splash.classList.add('hidden');
             setTimeout(() => splash.remove(), 500); // Remove from DOM after transition
-          }, 500); // Short delay to ensure React is likely mounted/hydrated
+          }, 2500); // Extended duration (2.5s) to allow reading text
         }
 
         // Only attempt detailed logging in development environments
@@ -310,8 +302,10 @@
       window.addEventListener('load', () => {
         const splash = document.getElementById('splash');
         if (splash) {
-          splash.classList.add('hidden');
-          setTimeout(() => splash.remove(), 500);
+          setTimeout(() => {
+            splash.classList.add('hidden');
+            setTimeout(() => splash.remove(), 500);
+          }, 2500);
         }
       });
     }
