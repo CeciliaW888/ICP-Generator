@@ -44,8 +44,8 @@ const MOCKS: Record<string, ICPData> = {
       { signal: "Safety Incident Report", description: "Heightened focus on hand protection following quarterly review.", urgency: "Medium" }
     ],
     decisionMakers: [
-      { role: "Head of Health & Safety", priorities: ["Compliance", "Risk Reduction"], painPoints: ["Inconsistent Product Quality"] },
-      { role: "Procurement Manager", priorities: ["Cost Reduction", "Vendor Consolidation"], painPoints: ["Logistics Costs"] },
+      { role: "Head of Health & Safety", name: "John Smith (Test Fallback)", linkedIn: "SEARCH", priorities: ["Compliance", "Risk Reduction"], painPoints: ["Inconsistent Product Quality"] },
+      { role: "Procurement Manager", name: "Jane Doe (Test NotFound)", linkedIn: "Not Found", priorities: ["Cost Reduction", "Vendor Consolidation"], painPoints: ["Logistics Costs"] },
       { role: "Site General Manager", priorities: ["Productivity", "Uptime"], painPoints: ["Safety Stoppages"] }
     ],
     competitorProducts: ["Ansell", "3M", "Honeywell"],
@@ -272,16 +272,34 @@ const ICP_SCHEMA = {
   required: ["targetName", "summary", "firmographics", "industryVerticals", "operationalIndicators", "keyPainPoints", "buyingSignals", "decisionMakers", "recommendedApproach", "productFit"]
 };
 
+// Models to try in order. Fulfills user request to fallback if primary fails.
+const MODEL_CHAIN = ['gemini-3-pro-preview', 'gemini-3-flash-preview', 'gemini-2.0-flash-exp'];
+
+const generateSafeContent = async (contents: any, config: any) => {
+  if (!ai) throw new Error("AI client not initialized");
+
+  let lastError;
+  for (const model of MODEL_CHAIN) {
+    try {
+      console.log(`Attempting generation with model: ${model}`);
+      const response = await ai.models.generateContent({
+        model: model,
+        contents: contents,
+        config: config
+      });
+      return response;
+    } catch (error) {
+      console.warn(`Model ${model} failed:`, error);
+      lastError = error;
+      // Continue to next model in chain
+    }
+  }
+  throw lastError || new Error("All models failed");
+};
+
 export const generateICP = async (query: string): Promise<GeneratedICPResponse> => {
-  // FALLBACK: If no API Key, return Mock Data immediately
-  // Guideline: Check process.env.API_KEY validity before making calls if needed, 
-  // though typically application should handle auth. Here we support Demo Mode.
-  // FALLBACK: If no API Key, return Mock Data immediately
-  // Guideline: Check process.env.API_KEY validity before making calls if needed, 
-  // though typically application should handle auth. Here we support Demo Mode.
   if (!import.meta.env.VITE_API_KEY) {
     console.warn("No API Key detected. Returning Demo Data.");
-    // Simulate network delay for realism
     await new Promise(resolve => setTimeout(resolve, 1500));
     return getMockData(query, false);
   }
@@ -299,10 +317,7 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
       3. Key Pain Points: What keeps them awake at night regarding safety and supply?
       4. Buying Signals: Recent news, project announcements, tender awards, or safety incidents in the last 12 months.
       5. Decision Makers: Who buys safety gear? 
-         **IMPORTANT**: 
-         - If the query is a **Specific Company** (e.g. "BHP", "Woolworths"), FIND THE REAL NAMES of the people currently in these roles and their LinkedIn links. 
-         - **CRITICAL**: Check the search results carefully. If you find a LinkedIn profile URL for the person, USE IT. If you absolutely cannot find it, return "SEARCH".
-         - If the query is a **Generic Industry/Segment** (e.g. "Mining", "Construction"), **DO NOT** generate names or links. Leave the 'name' and 'linkedIn' fields empty. Return Job Titles only.
+         **IMPORTANT**: If the query is a specific company (e.g. "BHP", "Woolworths"), FIND THE REAL NAMES of the people currently in these roles and their LinkedIn links. If the exact profile URL is not found, return "SEARCH" instead of guessing. If generic, use job titles only.
       6. Recommended Approach: How should a sales rep pitch to this account?
       7. Product Fit: Categorize products into High Priority, Medium Priority, and Cross-sell opportunities.
       
@@ -310,16 +325,10 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
       If the query is a segment (e.g., "Mid-tier Construction in Victoria"), generate a representative profile based on top players in that space.
     `;
 
-    if (!ai) throw new Error("AI client not initialized");
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: prompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: ICP_SCHEMA,
-      },
+    const response = await generateSafeContent(prompt, {
+      tools: [{ googleSearch: {} }],
+      responseMimeType: "application/json",
+      responseSchema: ICP_SCHEMA,
     });
 
     const jsonText = response.text;
@@ -338,6 +347,20 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
       ?.map((chunk: any) => chunk.web)
       .filter((web: any) => web && web.uri && web.title) || [];
 
+    // STRICT VALIDATION: Wipe any LinkedIn link that wasn't found in the source documents.
+    if (parsedData && parsedData.decisionMakers) {
+      const validUris = new Set(sources.map((s: any) => s.uri));
+      parsedData.decisionMakers.forEach((dm) => {
+        if (dm.linkedIn && dm.linkedIn !== 'SEARCH') {
+          const isVerified = Array.from(validUris).some(uri => uri.includes(dm.linkedIn));
+          if (!isVerified) {
+            console.log(`Strict Grounding: Wiping unverified link for ${dm.role}: ${dm.linkedIn}`);
+            dm.linkedIn = 'SEARCH';
+          }
+        }
+      });
+    }
+
     return {
       data: parsedData,
       sources: sources,
@@ -346,7 +369,6 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
 
   } catch (error) {
     console.error("Error generating ICP:", error);
-    // FALLBACK: If API fails (e.g. quota, network), return Mock Data
     return getMockData(query, true);
   }
 };
@@ -370,22 +392,18 @@ export const enrichRole = async (companyName: string, roleTitle: string): Promis
         - It is better to return "SEARCH" than a broken link.
     `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: prompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            linkedin: { type: Type.STRING },
-            context: { type: Type.STRING }
-          },
-          required: ["name", "linkedin", "context"]
-        }
-      },
+    const response = await generateSafeContent(prompt, {
+      tools: [{ googleSearch: {} }],
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          linkedin: { type: Type.STRING },
+          context: { type: Type.STRING }
+        },
+        required: ["name", "linkedin", "context"]
+      }
     });
 
     const text = response.text;
@@ -407,15 +425,14 @@ export const enrichRole = async (companyName: string, roleTitle: string): Promis
         !uri.includes("/dir/")
       );
 
-    // If the model gave up (SEARCH) or passed a generic link, but we found a REAL one in sources, use it.
+    // STRICT OVERRIDE: 
     if (linkedinSource) {
-      // If model returned SEARCH, 'Not Found', or a different link, prefer the grounded one
-      // We trust the search result source more than the generated text for URLs
-      if (parsed.linkedin === 'SEARCH' || parsed.linkedin === 'Not Found' || !parsed.linkedin || parsed.linkedin.includes('linkedin.com')) {
-        console.log(`Grounding: Replaced ${parsed.linkedin} with ${linkedinSource}`);
-        parsed.linkedin = linkedinSource;
-        parsed.context = `${parsed.context} (Verified via Search)`;
-      }
+      console.log(`Grounding: Verified Link ${linkedinSource}`);
+      parsed.linkedin = linkedinSource;
+      parsed.context = `${parsed.context} (Verified via Search)`;
+    } else {
+      console.log(`Grounding: No verified source found. Resetting ${parsed.linkedin} to SEARCH.`);
+      parsed.linkedin = "SEARCH";
     }
 
     return parsed;

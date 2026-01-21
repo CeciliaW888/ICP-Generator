@@ -15,8 +15,8 @@ COPY . .
 # Build args for Environment Variables
 # Note: In a real CI/CD, you might inject this differently, 
 # but for a static build, it must be present at build time.
-ARG API_KEY
-ENV API_KEY=$API_KEY
+ARG VITE_API_KEY
+ENV VITE_API_KEY=$VITE_API_KEY
 
 # Build the application
 RUN npm run build
