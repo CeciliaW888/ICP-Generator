@@ -127,11 +127,15 @@ const App: React.FC = () => {
           <div className="flex items-center gap-3">
             {/* Logo displaying the local icon file */}
             <img src="/icons/icon-120.png" alt="Blackwoods Logo" className="w-8 h-8 rounded-lg flex-shrink-0" />
-            <span className="font-semibold text-gray-900 text-lg tracking-tight hidden sm:block">ICP Generator</span>
+
+            {/* Dynamic Title for Mobile/Desktop */}
+            <span className="font-semibold text-gray-900 text-lg tracking-tight truncate max-w-[200px] sm:max-w-none">
+              {view === 'saved' ? 'Saved Profiles' : 'ICP Generator'}
+            </span>
 
             {isDemoMode && (
-              <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 flex items-center gap-1 border border-gray-200">
-                <WifiOff className="w-3 h-3" /> <span className="hidden sm:inline">DEMO</span>
+              <span className="hidden sm:flex ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 items-center gap-1 border border-gray-200">
+                <WifiOff className="w-3 h-3" /> DEMO
               </span>
             )}
           </div>
@@ -139,8 +143,8 @@ const App: React.FC = () => {
             <button
               onClick={() => setView('dashboard')}
               className={`transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-md ${view === 'dashboard'
-                  ? 'bg-[#002452]/10 text-[#002452]'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'bg-[#002452]/10 text-[#002452]'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               title="Dashboard"
             >
@@ -150,8 +154,8 @@ const App: React.FC = () => {
             <button
               onClick={() => setView('saved')}
               className={`transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-md ${view === 'saved'
-                  ? 'bg-[#002452]/10 text-[#002452]'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'bg-[#002452]/10 text-[#002452]'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               title="Saved Profiles"
             >
