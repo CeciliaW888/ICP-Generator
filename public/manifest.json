@@ -3,7 +3,7 @@
   "short_name": "ICP Generator",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f3f4f6",
+  "background_color": "#002452",
   "theme_color": "#002452",
   "orientation": "portrait",
   "icons": [
