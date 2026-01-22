@@ -1,4 +1,4 @@
-const CACHE_NAME = 'icp-gen-v5-deployment-fix';
+const CACHE_NAME = 'icp-gen-v6-prod-fix';
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
