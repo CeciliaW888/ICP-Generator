@@ -345,23 +345,55 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
       }
     }
 
-    // Extract grounding sources
+    // Extract valid grounding sources
     const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
       ?.map((chunk: any) => chunk.web)
       .filter((web: any) => web && web.uri && web.title) || [];
 
-    // STRICT VALIDATION: Wipe any LinkedIn link that wasn't found in the source documents.
-    if (parsedData && parsedData.decisionMakers) {
-      const validUris = new Set(sources.map((s: any) => s.uri));
-      parsedData.decisionMakers.forEach((dm) => {
-        if (dm.linkedIn && dm.linkedIn !== 'SEARCH') {
-          const isVerified = Array.from(validUris).some(uri => uri.includes(dm.linkedIn));
-          if (!isVerified) {
-            console.log(`Strict Grounding: Wiping unverified link for ${dm.role}: ${dm.linkedIn}`);
-            dm.linkedIn = 'SEARCH';
+    const validUris = new Set(sources.map((s: any) => s.uri));
+
+    if (parsedData) {
+      // 1. STRICT LINKEDIN VALIDATION
+      if (parsedData.decisionMakers) {
+        parsedData.decisionMakers.forEach((dm) => {
+          if (dm.linkedIn && dm.linkedIn !== 'SEARCH') {
+            const isVerified = Array.from(validUris).some(uri => uri.includes(dm.linkedIn));
+            if (!isVerified) {
+              console.log(`Strict Grounding: Wiping unverified link for ${dm.role}: ${dm.linkedIn}`);
+              dm.linkedIn = 'SEARCH';
+            }
           }
-        }
-      });
+        });
+      }
+
+      // 2. SMART SOURCE CORRECTION FOR BUYING TRIGGERS
+      if (parsedData.buyingSignals) {
+        parsedData.buyingSignals.forEach((signal) => {
+          let bestUri = signal.sourceUri;
+          let isVerified = bestUri && validUris.has(bestUri);
+
+          // If not verified, try to fuzzy match the Title to a Grounding Chunk
+          if (!isVerified) {
+            const matchingSource = sources.find((s: any) =>
+              s.title && signal.source && s.title.toLowerCase().includes(signal.source.toLowerCase())
+            );
+            if (matchingSource) {
+              bestUri = matchingSource.uri;
+              isVerified = true;
+            }
+          }
+
+          // STRICT FALLBACK: If the URI is not verified (not in grounding metadata), SCRUB IT.
+          // We do NOT trust the LLM to generate valid deep links that weren't in the search context.
+          // Instead, we generate a Google Search URL so the user can find the source themselves.
+          if (!isVerified) {
+            const searchQuery = `${signal.signal} ${signal.description} ${parsedData?.targetName}`;
+            bestUri = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+          }
+
+          signal.sourceUri = bestUri;
+        });
+      }
     }
 
     return {
