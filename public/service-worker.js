@@ -1,4 +1,4 @@
-const CACHE_NAME = 'icp-gen-v6-prod-fix';
+const CACHE_NAME = 'icp-gen-v7-hard-key';
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
