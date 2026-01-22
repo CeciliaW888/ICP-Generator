@@ -28,9 +28,17 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
     <div className="w-full max-w-4xl mx-auto px-4 py-8">
       <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">Build Your ICP</h2>
-        <p className="text-gray-500 mb-8">
+        <p className="text-gray-500 mb-6">
           Enter a company name or industry segment to generate a comprehensive profile using live web intelligence.
         </p>
+
+        {/* ICP Definition for New Sales Reps */}
+        <div className="mb-8 bg-blue-50 rounded-lg p-4 border border-blue-100 flex gap-3 text-sm text-blue-800">
+          <div className="min-w-[4px] bg-blue-500 rounded-full" />
+          <p>
+            <span className="font-bold">What is an ICP?</span> An <span className="italic">Ideal Customer Profile</span> defines the perfect prospect for Blackwoods—analyzing their size, safety risks, and buying urgency to help you focus on high-value accounts.
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="relative mb-6">
           <input
