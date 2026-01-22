@@ -2,54 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { SearchForm } from './components/SearchForm';
 import { ICPResult } from './components/ICPResult';
 import { SavedProfiles } from './components/SavedProfiles';
-import { LoginView } from './components/LoginView';
 import { generateICP } from './services/gemini';
 import { ICPData, GroundingSource } from './types';
 import { saveProfile, getSavedProfiles, deleteProfile, SavedICP } from './services/storage';
-import { LayoutDashboard, WifiOff, AlertTriangle, BookMarked, LogOut } from 'lucide-react';
+import { LayoutDashboard, WifiOff, AlertTriangle, BookMarked } from 'lucide-react';
 
 
-// Helper to extract initials from email (e.g., "john.doe@company.com" -> "JD")
-const getInitials = (email: string): string => {
-  try {
-    const [localPart] = email.split('@');
-    const parts = localPart.split(/[._-]/).filter(Boolean);
 
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return localPart.slice(0, 2).toUpperCase();
-  } catch (e) {
-    return 'BW';
-  }
-};
 
 const App: React.FC = () => {
-  // Authentication State
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState("");
-
-  // Check storage on mount
-  useEffect(() => {
-    const storedUser = localStorage.getItem('auth_user');
-    if (storedUser) {
-      setUserEmail(storedUser);
-      setIsLoggedIn(true);
-    }
-  }, []);
-
-  const handleLogin = (email: string) => {
-    localStorage.setItem('auth_user', email);
-    setUserEmail(email);
-    setIsLoggedIn(true);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('auth_user');
-    setIsLoggedIn(false);
-    setUserEmail("");
-  };
-
   const [loading, setLoading] = useState(false);
   const [icpData, setIcpData] = useState<ICPData | null>(null);
   const [sources, setSources] = useState<GroundingSource[]>([]);
@@ -113,11 +74,7 @@ const App: React.FC = () => {
     setView('dashboard');
   };
 
-  if (!isLoggedIn) {
-    return <LoginView onLogin={handleLogin} />;
-  }
 
-  const userInitials = getInitials(userEmail);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -164,19 +121,6 @@ const App: React.FC = () => {
             </button>
 
             <div className="flex items-center gap-3 pl-2 md:pl-4 border-l border-gray-200">
-              <div
-                className="w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center text-xs font-semibold shadow-sm cursor-help transition-transform hover:scale-105 flex-shrink-0"
-                title={`Logged in as: ${userEmail}`}
-              >
-                {userInitials}
-              </div>
-              <button
-                onClick={handleLogout}
-                className="text-gray-400 hover:text-red-600 transition-colors"
-                title="Sign Out"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
             </div>
           </div>
         </div>

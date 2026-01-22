@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, ShieldAlert } from 'lucide-react';
 
 interface SearchFormProps {
   onSearch: (query: string) => void;
@@ -61,6 +61,11 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
             )}
           </button>
         </form>
+
+        <p className="text-xs text-center text-gray-400 mb-8 flex items-center justify-center gap-1.5">
+          <ShieldAlert className="w-3 h-3" />
+          <span>Please do not enter confidential information or PII.</span>
+        </p>
 
         <div className="space-y-3">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Suggested Searches</p>
