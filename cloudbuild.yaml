@@ -1,6 +1,19 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: [ 'build', '-t', 'gcr.io/icpgenerator/customer-profile-app', '--build-arg', 'VITE_API_KEY=$_VITE_API_KEY', '.' ]
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+  - 'run'
+  - 'deploy'
+  - 'customer-profile-app'
+  - '--image'
+  - 'gcr.io/icpgenerator/customer-profile-app'
+  - '--region'
+  - 'us-west1'
+  - '--platform'
+  - 'managed'
+  - '--allow-unauthenticated'
 images:
 - 'gcr.io/icpgenerator/customer-profile-app'
 substitutions:
