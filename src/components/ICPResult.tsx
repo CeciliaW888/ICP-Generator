@@ -18,7 +18,9 @@ import {
   Check,
   Search,
   Linkedin,
-  Loader2
+  Loader2,
+  Calendar,
+  ExternalLink
 } from 'lucide-react';
 import { ICPData, GroundingSource, DecisionMaker } from '../types';
 import { ExportMenu } from './ExportMenu';
@@ -244,9 +246,39 @@ export const ICPResult: React.FC<ICPResultProps> = ({ data, sources, onSave }) =
                           {signal.urgency}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600 leading-relaxed">
+                      <p className="text-xs text-gray-600 leading-relaxed mb-2">
                         {signal.description}
                       </p>
+
+                      {/* Date and Source Footer */}
+                      {(signal.date || signal.source) && (
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
+                          {signal.date && (
+                            <span className="flex items-center gap-1.5 text-[10px] font-medium text-gray-500">
+                              <Calendar className="w-3 h-3" />
+                              {signal.date}
+                            </span>
+                          )}
+
+                          {signal.source && (
+                            <span className="flex items-center gap-1.5 text-[10px] text-gray-500 ml-auto truncate max-w-[60%]">
+                              <ExternalLink className="w-3 h-3" />
+                              {signal.sourceUri ? (
+                                <a
+                                  href={signal.sourceUri}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="hover:text-blue-600 hover:underline truncate"
+                                >
+                                  {signal.source}
+                                </a>
+                              ) : (
+                                <span className="truncate">{signal.source}</span>
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                   {data.buyingSignals.length === 0 && (

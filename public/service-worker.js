@@ -1,4 +1,4 @@
-const CACHE_NAME = 'icp-gen-v2-grounding-fix';
+const CACHE_NAME = 'icp-gen-v3-login-fix';
 const URLS_TO_CACHE = [
   '/',
   '/index.html',

@@ -17,6 +17,9 @@ export interface BuyingSignal {
   signal: string;
   description: string;
   urgency: 'High' | 'Medium' | 'Low';
+  date?: string;
+  source?: string;
+  sourceUri?: string;
 }
 
 export interface DecisionMaker {

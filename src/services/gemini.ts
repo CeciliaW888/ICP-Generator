@@ -40,8 +40,8 @@ const MOCKS: Record<string, ICPData> = {
       "Downtime costs from safety incidents"
     ],
     buyingSignals: [
-      { signal: "New Exploration Project", description: "Recently announced $500M expansion in Pilbara region.", urgency: "High" },
-      { signal: "Safety Incident Report", description: "Heightened focus on hand protection following quarterly review.", urgency: "Medium" }
+      { signal: "New Exploration Project", description: "Recently announced $500M expansion in Pilbara region.", urgency: "High", date: "Oct 2024", source: "Mining Weekly" },
+      { signal: "Safety Incident Report", description: "Heightened focus on hand protection following quarterly review.", urgency: "Medium", date: "Sep 2024", source: "Internal Report" }
     ],
     decisionMakers: [
       { role: "Head of Health & Safety", name: "John Smith (Test Fallback)", linkedIn: "SEARCH", priorities: ["Compliance", "Risk Reduction"], painPoints: ["Inconsistent Product Quality"] },
@@ -87,8 +87,8 @@ const MOCKS: Record<string, ICPData> = {
       "Compliance documentation management"
     ],
     buyingSignals: [
-      { signal: "Tender Win", description: "Awarded government contract for new Metro station upgrades.", urgency: "High" },
-      { signal: "Fiscal Year End", description: "Budget flush expected before June 30.", urgency: "Medium" }
+      { signal: "Tender Win", description: "Awarded government contract for new Metro station upgrades.", urgency: "High", date: "Nov 2024", source: "NSW Government Tenders" },
+      { signal: "Fiscal Year End", description: "Budget flush expected before June 30.", urgency: "Medium", date: "Jun 2024", source: "Industry Forecast" }
     ],
     decisionMakers: [
       { role: "Project Manager", priorities: ["Speed to Site", "Budget Adherence"], painPoints: ["Delivery Delays"] },
@@ -133,8 +133,8 @@ const MOCKS: Record<string, ICPData> = {
       "Cost of disposable consumables"
     ],
     buyingSignals: [
-      { signal: "Facility Upgrade", description: "Planning application submitted for warehouse extension.", urgency: "Medium" },
-      { signal: "Management Change", description: "New Operations Manager appointed last month.", urgency: "High" }
+      { signal: "Facility Upgrade", description: "Planning application submitted for warehouse extension.", urgency: "Medium", date: "Aug 2024", source: "Local Council Planning" },
+      { signal: "Management Change", description: "New Operations Manager appointed last month.", urgency: "High", date: "Dec 2024", source: "LinkedIn" }
     ],
     decisionMakers: [
       { role: "Operations Manager", priorities: ["Efficiency", "Cost Control"], painPoints: ["Downtime"] },
@@ -231,6 +231,9 @@ const ICP_SCHEMA = {
           signal: { type: Type.STRING, description: "The specific signal (e.g. New Project)" },
           description: { type: Type.STRING, description: "Details about the signal found on the web" },
           urgency: { type: Type.STRING, enum: ["High", "Medium", "Low"] },
+          date: { type: Type.STRING, description: "Date or timeframe of the signal (e.g. 'Oct 2023')" },
+          source: { type: Type.STRING, description: "Name of the source (e.g. 'Financial Review')" },
+          sourceUri: { type: Type.STRING, description: "URL of the source article if found" },
         },
         required: ["signal", "description", "urgency"]
       }
@@ -315,7 +318,7 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
       1. Firmographics: Real employee counts, revenue, and site locations.
       2. Operational Indicators: Safety risks, compliance needs (AS/NZS standards), and operating complexity (FIFO, 24/7 shifts, Remote Logistics).
       3. Key Pain Points: What keeps them awake at night regarding safety and supply?
-      4. Buying Signals: Recent news, project announcements, tender awards, or safety incidents in the last 12 months.
+      4. Buying Signals: Recent news, project announcements, tender awards, or safety incidents in the last 12 months. **Include the Date and Source Link**.
       5. Decision Makers: Who buys safety gear? 
          **IMPORTANT**: If the query is a specific company (e.g. "BHP", "Woolworths"), FIND THE REAL NAMES of the people currently in these roles and their LinkedIn links. If the exact profile URL is not found, return "SEARCH" instead of guessing. If generic, use job titles only.
       6. Recommended Approach: How should a sales rep pitch to this account?
