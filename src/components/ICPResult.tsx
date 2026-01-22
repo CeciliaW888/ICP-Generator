@@ -124,6 +124,22 @@ export const ICPResult: React.FC<ICPResultProps> = ({ data, sources, onSave }) =
             {/* Left Column: Firmographics & Ops */}
             <div className="space-y-6 lg:col-span-1">
 
+              {/* Recommended Sales Approach (Moved to 1st Card Position) */}
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-sm border border-amber-100 p-6">
+                <h3 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-amber-600" />
+                  Recommended Sales Approach
+                </h3>
+                <ul className="space-y-3">
+                  {data.recommendedApproach?.map((approach, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm text-amber-900">
+                      <Target className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                      {approach}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
               {/* Firmographics Card */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -304,20 +320,7 @@ export const ICPResult: React.FC<ICPResultProps> = ({ data, sources, onSave }) =
               </div>
 
               {/* Recommended Approach */}
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-sm border border-amber-100 p-6">
-                <h3 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
-                  <Lightbulb className="w-5 h-5 text-amber-600" />
-                  Recommended Approach
-                </h3>
-                <ul className="space-y-3">
-                  {data.recommendedApproach?.map((approach, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm text-amber-900">
-                      <Target className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                      {approach}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+
             </div>
 
             {/* Right Column: Decision Makers & Product Fit */}
