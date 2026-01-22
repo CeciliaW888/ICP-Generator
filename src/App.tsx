@@ -282,13 +282,14 @@ const App: React.FC = () => {
             )}
           </>
         )}
-        {/* Footer - Global */}
-        <div className="mt-12 mb-6 text-center">
-          <p className="text-gray-400 text-xs font-medium">
-            Brought to you by Blackwoods Data & Analytics CoE
-          </p>
-        </div>
       </main>
+
+      {/* Footer - Global */}
+      <footer className="mt-auto py-6 text-center border-t border-gray-200 bg-white/50 backdrop-blur-sm">
+        <p className="text-gray-400 text-xs font-medium">
+          Brought to you by Blackwoods Data & Analytics CoE
+        </p>
+      </footer>
     </div>
   );
 };

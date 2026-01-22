@@ -34,7 +34,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ data, elementRef }) => {
       // We set useCORS to true to handle external images (if any).
       // We must NOT set allowTaint: true because we need to read dataURL.
       return await html2canvas(element, {
-        scale: 2, // Retina quality
+        scale: 1.5, // Reduced from 2 solely to prevent black image issues
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
@@ -88,15 +88,18 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ data, elementRef }) => {
             marginTop: '40px',
             marginBottom: '20px',
             textAlign: 'center',
-            color: '#9ca3af', // gray-400
-            fontSize: '12px',
+            color: '#4b5563', // gray-600 - Darker for visibility
+            fontSize: '14px',
             fontFamily: 'sans-serif',
-            fontWeight: '500',
+            fontWeight: '600',
             width: '100%'
           });
 
           if (exportContainer) {
             exportContainer.appendChild(footerDiv);
+            // Ensure container grows to fit footer
+            exportContainer.style.height = 'auto';
+            exportContainer.style.paddingBottom = '60px'; // Extra buffer
           } else if (clonedDoc.body) {
             clonedDoc.body.appendChild(footerDiv);
           }
@@ -124,8 +127,8 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ data, elementRef }) => {
       const canvas = await captureToCanvas(elementRef.current);
 
       const link = document.createElement('a');
-      link.download = `ICP-${data.targetName.replace(/\s+/g, '-')}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.download = `ICP-${data.targetName.replace(/\s+/g, '-')}.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.9);
       link.click();
     } catch (err) {
       console.error("Image export failed", err);
@@ -232,6 +235,10 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ data, elementRef }) => {
 
           <h2 style="color: #002452; border-bottom: 1px solid #ccc;">Recommended Strategy</h2>
           <ul>${data.recommendedApproach.map(r => `<li>${r}</li>`).join('')}</ul>
+
+          <div style="margin-top: 40px; margin-bottom: 20px; text-align: center; color: #4b5563; font-size: 11pt; font-weight: 600;">
+            Brought to you by Blackwoods Data & Analytics CoE
+          </div>
         </body>
         </html>
       `;
@@ -270,11 +277,11 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ data, elementRef }) => {
 
       slide.addText(data.targetName, { x: 0.5, y: '40%', w: '90%', fontSize: 36, color: 'FFFFFF', align: 'center', bold: true });
       slide.addText('Ideal Customer Profile Intelligence', { x: 0.5, y: '55%', w: '90%', fontSize: 18, color: COLOR_ACCENT, align: 'center' });
-      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '90%', w: '100%', fontSize: 12, color: 'FFFFFF', align: 'center', transparency: 30 });
+      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '90%', w: '100%', fontSize: 12, color: 'E5E7EB', align: 'center' });
 
       // --- Slide 2: Company Profile (Missing section fix) ---
       slide = pres.addSlide();
-      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '95%', w: '100%', fontSize: 9, color: '9CA3AF', align: 'center' });
+      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '92%', w: '100%', fontSize: 11, color: '6B7280', align: 'center' });
       slide.addText('Company Profile', { x: 0.5, y: 0.4, fontSize: 24, color: COLOR_BRAND, bold: true });
       slide.addShape(pres.ShapeType.line, { x: 0.5, y: 0.85, w: '90%', h: 0, line: { color: COLOR_BRAND, width: 1 } });
       slide.addText(data.summary, {
@@ -284,7 +291,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ data, elementRef }) => {
 
       // --- Slide 3: Firmographics ---
       slide = pres.addSlide();
-      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '95%', w: '100%', fontSize: 9, color: '9CA3AF', align: 'center' });
+      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '92%', w: '100%', fontSize: 11, color: '6B7280', align: 'center' });
       slide.addText('Firmographics & Scale', { x: 0.5, y: 0.4, fontSize: 24, color: COLOR_BRAND, bold: true });
       slide.addShape(pres.ShapeType.line, { x: 0.5, y: 0.85, w: '90%', h: 0, line: { color: COLOR_BRAND, width: 1 } });
 
@@ -303,7 +310,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ data, elementRef }) => {
 
       // --- Slide 4: Operational Profile ---
       slide = pres.addSlide();
-      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '95%', w: '100%', fontSize: 9, color: '9CA3AF', align: 'center' });
+      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '92%', w: '100%', fontSize: 11, color: '6B7280', align: 'center' });
       slide.addText('Operational Profile & Risk', { x: 0.5, y: 0.4, fontSize: 24, color: COLOR_BRAND, bold: true });
       slide.addShape(pres.ShapeType.line, { x: 0.5, y: 0.85, w: '90%', h: 0, line: { color: COLOR_BRAND, width: 1 } });
 
@@ -320,7 +327,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ data, elementRef }) => {
 
       // --- Slide 5: Buying Signals (With Chart) ---
       slide = pres.addSlide();
-      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '95%', w: '100%', fontSize: 9, color: '9CA3AF', align: 'center' });
+      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '92%', w: '100%', fontSize: 11, color: '6B7280', align: 'center' });
       slide.addText('Buying Signals & Urgency', { x: 0.5, y: 0.4, fontSize: 24, color: COLOR_BRAND, bold: true });
       slide.addShape(pres.ShapeType.line, { x: 0.5, y: 0.85, w: '90%', h: 0, line: { color: COLOR_BRAND, width: 1 } });
 
@@ -346,7 +353,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ data, elementRef }) => {
 
       // --- Slide 6: Decision Makers ---
       slide = pres.addSlide();
-      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '95%', w: '100%', fontSize: 9, color: '9CA3AF', align: 'center' });
+      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '92%', w: '100%', fontSize: 11, color: '6B7280', align: 'center' });
       slide.addText('Key Decision Makers', { x: 0.5, y: 0.4, fontSize: 24, color: COLOR_BRAND, bold: true });
       slide.addShape(pres.ShapeType.line, { x: 0.5, y: 0.85, w: '90%', h: 0, line: { color: COLOR_BRAND, width: 1 } });
 
@@ -359,7 +366,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ data, elementRef }) => {
 
       // --- Slide 7: Strategy & Product Fit (With Chart) ---
       slide = pres.addSlide();
-      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '95%', w: '100%', fontSize: 9, color: '9CA3AF', align: 'center' });
+      slide.addText('Brought to you by Blackwoods Data & Analytics CoE', { x: 0, y: '92%', w: '100%', fontSize: 11, color: '6B7280', align: 'center' });
       slide.addText('Strategic Fit & Opportunities', { x: 0.5, y: 0.4, fontSize: 24, color: COLOR_BRAND, bold: true });
       slide.addShape(pres.ShapeType.line, { x: 0.5, y: 0.85, w: '90%', h: 0, line: { color: COLOR_BRAND, width: 1 } });
 
