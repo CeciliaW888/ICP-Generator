@@ -68,6 +68,8 @@ This guide outlines how to deploy the ICP Generator application to Google Cloud 
 
 ### Steps
 
+### Steps
+
 1.  **Enable Google Cloud Services**
     Ensure the necessary APIs are enabled for your project.
     ```bash
@@ -79,68 +81,53 @@ This guide outlines how to deploy the ICP Generator application to Google Cloud 
     ```bash
     gcloud artifacts repositories create icp-generator-repo --repository-format=docker --location=[YOUR_REGION] --project=[YOUR_PROJECT_ID]
     ```
-    *Replace `icp-generator-repo` with your desired repository name if different.*
 
-3.  **Create `cloudbuild.yaml` for Docker Image Build**
-    To build the Docker image and pass the `API_KEY` securely, create a file named `cloudbuild.yaml` in the root of your project with the following content:
+3.  **Create `cloudbuild.yaml`**
+    Create `cloudbuild.yaml` in the root directory. **CRITICAL:** Ensure the `push` step is present to avoid deploying old images.
     ```yaml
     steps:
     - name: 'gcr.io/cloud-builders/docker'
-      args: ['build', '--build-arg', 'API_KEY=${_API_KEY}', '-t', '[YOUR_REGION]-docker.pkg.dev/[YOUR_PROJECT_ID]/icp-generator-repo/icp-generator:latest', '.']
+      args: [ 'build', '-t', 'gcr.io/[YOUR_PROJECT_ID]/icp-generator-repo/icp-generator', '--build-arg', 'VITE_API_KEY=$_VITE_API_KEY', '.' ]
+    - name: 'gcr.io/cloud-builders/docker'
+      args: [ 'push', 'gcr.io/[YOUR_PROJECT_ID]/icp-generator-repo/icp-generator' ]
+    - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+      entrypoint: gcloud
+      args:
+      - 'run'
+      - 'deploy'
+      - 'customer-profile-app'
+      - '--image'
+      - 'gcr.io/[YOUR_PROJECT_ID]/icp-generator-repo/icp-generator'
+      - '--region'
+      - 'us-west1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
     images:
-    - '[YOUR_REGION]-docker.pkg.dev/[YOUR_PROJECT_ID]/icp-generator-repo/icp-generator:latest'
-    ```
-    *Make sure to replace `[YOUR_REGION]`, `[YOUR_PROJECT_ID]`, and `icp-generator-repo` (if you chose a different name) with your actual values.*
-
-4.  **Update `nginx.conf`**
-    Cloud Run expects applications to listen on the port specified by the `PORT` environment variable (default `8080`). Update your `nginx.conf` file to listen on `8080`:
-    ```nginx
-    server {
-        listen 8080; # Changed from 80
-        server_name localhost;
-        root /usr/share/nginx/html;
-        index index.html;
-
-        # Handle React Router (SPA)
-        location / {
-            try_files $uri $uri/ /index.html;
-        }
-
-        # Optional: Cache static assets
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-            expires 1y;
-            add_header Cache-Control "public, no-transform";
-        }
-    }
+    - 'gcr.io/[YOUR_PROJECT_ID]/icp-generator-repo/icp-generator'
+    substitutions:
+      _VITE_API_KEY: ''
     ```
 
-5.  **Update `Dockerfile`**
-    Update your `Dockerfile` to expose port `8080` (this is primarily for documentation/metadata):
-    ```dockerfile
-    # ... (other Dockerfile content) ...
-
-    # Expose port 8080
-    EXPOSE 8080 # Changed from 80
-
-    # Start Nginx
-    CMD ["nginx", "-g", "daemon off;"]
+4.  **Local Verification (Highly Recommended)**
+    Before deploying, create a temporary script `verify-local-api.js` to ensure your API Key works with the Google Gen AI SDK.
+    ```javascript
+    import { GoogleGenAI } from "@google/genai";
+    const ai = new GoogleGenAI({ apiKey: "YOUR_KEY" });
+    // ... run a simple generation test
     ```
 
-6.  **Build and Push the Docker Image to Artifact Registry**
-    Use Cloud Build to build your container image and push it to the Artifact Registry.
+5.  **Cache Busting (Important)**
+    If updating the app logic or API key, bump the `CACHE_NAME` version in `public/service-worker.js` (e.g., `v1` -> `v2`) to force clients to update.
+
+6.  **Deploy to Cloud Run**
+    Run the build command. Use this syntax to safely pass the API Key:
     ```bash
-    gcloud builds submit --config=cloudbuild.yaml --substitutions=_API_KEY=[YOUR_GEMINI_API_KEY] --project=[YOUR_PROJECT_ID] .
+    gcloud builds submit --config cloudbuild.yaml --substitutions=_VITE_API_KEY=your_actual_api_key_here .
     ```
-    *Replace `[YOUR_GEMINI_API_KEY]` with your actual API key.*
+    *Note: Do not use quotes around the key in the substitution flag if running from PowerShell, or ensure they are escaped correctly.*
 
-7.  **Deploy to Cloud Run**
-    Deploy the container image to Cloud Run. The service will be publicly accessible.
-    ```bash
-    gcloud run deploy icp-generator-app --image=[YOUR_REGION]-docker.pkg.dev/[YOUR_PROJECT_ID]/icp-generator-repo/icp-generator:latest --platform=managed --region=[YOUR_REGION] --allow-unauthenticated --project=[YOUR_PROJECT_ID]
-    ```
-    *Replace `icp-generator-app` with your desired Cloud Run service name.*
-
-    After successful deployment, Cloud Run will provide a Service URL where your application is accessible.
+    After successful deployment, Cloud Run will provide a Service URL (e.g., `https://customer-profile-app-....a.run.app`).
 
 ### Security Warning: API Key Exposure
 
