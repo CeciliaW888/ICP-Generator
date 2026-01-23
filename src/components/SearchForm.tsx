@@ -36,7 +36,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
         <div className="mb-8 bg-blue-50 rounded-lg p-4 border border-blue-100 flex gap-3 text-sm text-blue-800">
           <div className="min-w-[4px] bg-blue-500 rounded-full" />
           <p>
-            <span className="font-bold">What is an ICP?</span> An <span className="italic">Ideal Customer Profile</span> defines the perfect prospect for Blackwoods—analyzing their size, safety risks, and buying urgency to help you focus on high-value accounts.
+            <span className="font-bold">What is an ICP?</span> An <span className="italic">Ideal Customer Profile</span> defines the perfect prospect for Blackwoods—analysing their size, safety risks, and buying urgency to help you focus on high-value accounts.
           </p>
         </div>
 

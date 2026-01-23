@@ -276,7 +276,7 @@ const ICP_SCHEMA = {
 };
 
 // Models to try in order. Fulfills user request to fallback if primary fails.
-const MODEL_CHAIN = ['gemini-3-pro-preview', 'gemini-3-flash-preview', 'gemini-2.0-flash-exp'];
+const MODEL_CHAIN = ['gemini-3-pro-preview', 'gemini-3-flash-preview', 'gemini-2.5-flash'];
 
 const generateSafeContent = async (contents: any, config: any) => {
   if (!ai) throw new Error("AI client not initialized");
@@ -329,7 +329,7 @@ export const generateICP = async (query: string): Promise<GeneratedICPResponse> 
     `;
 
     const response = await generateSafeContent(prompt, {
-      tools: [{ googleSearch: {} }],
+      // tools: [{ googleSearch: {} }], // Disabled: Causing 400 errors with current SDK/Model combo
       responseMimeType: "application/json",
       responseSchema: ICP_SCHEMA,
     });
