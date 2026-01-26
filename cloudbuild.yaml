@@ -1,6 +1,6 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', 'gcr.io/icpgenerator/customer-profile-app', '--build-arg', 'VITE_API_KEY=$_VITE_API_KEY', '.' ]
+  args: [ 'build', '-t', 'gcr.io/icpgenerator/customer-profile-app', '.' ]
 - name: 'gcr.io/cloud-builders/docker'
   args: [ 'push', 'gcr.io/icpgenerator/customer-profile-app' ]
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -18,5 +18,4 @@ steps:
   - '--allow-unauthenticated'
 images:
 - 'gcr.io/icpgenerator/customer-profile-app'
-substitutions:
-  _VITE_API_KEY: ''
+

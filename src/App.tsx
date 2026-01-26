@@ -17,7 +17,7 @@ const App: React.FC = () => {
   const [isFallbackMode, setIsFallbackMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isDemoMode = !import.meta.env.VITE_API_KEY;
+  const isDemoMode = false; // logic moved to backend
 
 
   const [view, setView] = useState<'dashboard' | 'saved'>('dashboard');

@@ -1,37 +1,27 @@
 # Build Stage
-FROM node:23-alpine AS builder
+FROM node:20-alpine
 
 WORKDIR /app
 
 # Copy dependency definitions
 COPY package*.json ./
+COPY server/package.json ./server/
 
 # Install dependencies
 RUN npm install
+RUN cd server && npm install
 
 # Copy source code
 COPY . .
 
-# Build args for Environment Variables
-# Note: In a real CI/CD, you might inject this differently, 
-# but for a static build, it must be present at build time.
-ARG VITE_API_KEY
-ENV VITE_API_KEY=$VITE_API_KEY
-
-# Build the application
+# Build the frontend
+# Note: VITE_API_KEY is no longer needed at build time!
 RUN npm run build
 
-# Production Stage
-FROM nginx:alpine
-
-# Copy built assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy custom Nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Expose port 80
+# Expose port (Cloud Run defaults to 8080)
 EXPOSE 8080
+ENV PORT=8080
+# GOOGLE_API_KEY will be injected by Cloud Run environment variables
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the server
+CMD ["node", "server/index.js"]
