@@ -301,7 +301,7 @@ const ICP_SCHEMA = {
 };
 
 // Models to try in order. Fulfills user request to fallback if primary fails.
-const MODEL_CHAIN = ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash']; // Updated to use generally available or preview models suitable for Node
+const MODEL_CHAIN = ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'];
 
 const generateSafeContent = async (contents, config) => {
     if (!ai) throw new Error("AI client not initialized");
@@ -360,20 +360,21 @@ app.post('/api/generate-icp', async (req, res) => {
       If the query is a segment (e.g., "Mid-tier Construction in Victoria"), generate a representative profile based on top players in that space.
     `;
 
-        const response = await generateSafeContent(prompt, {
+        const response = await generateSafeContent(prompt + `\n\nIMPORTANT: Return your response as valid JSON matching this structure: { targetName, summary, firmographics: { companySize, revenueRange, facilitiesCount, geographicPresence }, industryVerticals: [], operationalIndicators: { workforceSizePPE, riskEnvironment, complianceStandards: [], unionPresence, operatingConditions: [] }, keyPainPoints: [], buyingSignals: [{ signal, description, urgency, date, source, sourceUri }], decisionMakers: [{ role, name, linkedIn, priorities: [], painPoints: [] }], recommendedApproach: [], productFit: { highPriority: [], mediumPriority: [], crossSell: [] }, competitorProducts: [] }`, {
             tools: [{ googleSearch: {} }],
-            responseMimeType: "application/json",
-            responseSchema: ICP_SCHEMA,
         });
 
-        const jsonText = response.text(); // Note: .text() is a method in newer SDKs, or .text property. Checking docs... usually .text() or property .text
-        // The original code used response.text which might be a getter. In @google/genai v1 it might be slightly different but usually .text() is safest if available or just .text
-        // Actually in the original verification it was response.text
-        // Let's assume response.text works as in the original file.
+        let jsonText = response.text;
 
         let parsedData = null;
 
         if (jsonText) {
+            // Strip markdown code blocks if present (```json ... ```)
+            jsonText = jsonText.trim();
+            if (jsonText.startsWith('```')) {
+                jsonText = jsonText.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+            }
+
             try {
                 parsedData = JSON.parse(jsonText);
             } catch (e) {
@@ -477,7 +478,7 @@ app.post('/api/enrich-role', async (req, res) => {
             }
         });
 
-        const text = response.text();
+        const text = response.text;
         if (!text) return res.status(500).json({ error: 'No response text' });
 
         const parsed = JSON.parse(text);

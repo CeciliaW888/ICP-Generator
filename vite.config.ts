@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       host: true, // Exposes the server to your local network (0.0.0.0)
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+          secure: false,
+        }
+      }
     },
     define: {
       // Polyfill removed in favor of import.meta.env.VITE_API_KEY

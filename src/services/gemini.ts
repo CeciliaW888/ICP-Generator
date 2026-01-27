@@ -4,7 +4,7 @@ import { GeneratedICPResponse, ICPData } from "../types";
 // CLIENT-SIDE PROXY SERVICE
 // ------------------------------------------------------------------
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = '/api';
 
 // Fallback Mock Data (Client-side failover if server is down)
 const CLIENT_FALLBACK_MOCK: ICPData = {
