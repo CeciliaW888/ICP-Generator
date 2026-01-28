@@ -84,3 +84,30 @@ Note: `dotenv` does NOT override existing system environment variables. If API c
 - Google Search tool and `responseSchema` (structured JSON output) cannot be used together - the server prompts for JSON format instead
 - LinkedIn URLs are strictly validated against grounding sources; unverified links become "SEARCH"
 - LocalStorage only for saved profiles (no server persistence)
+
+## Known Bugs & Solutions (Gemini API)
+
+| Issue | Symptom | Solution |
+|-------|---------|----------|
+| `response.text` is property not method | `TypeError: response.text is not a function` | Use `response.text` not `response.text()` |
+| JSON in markdown blocks | `SyntaxError: Unexpected token` | Strip ` ```json ``` ` wrapper before parsing |
+| responseSchema + googleSearch | `400: controlled generation not supported` | Remove responseSchema, prompt for JSON instead |
+| Outdated model names | `404: model not found` | Use `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash` |
+| dotenv doesn't override system vars | Wrong API key used | Unset system env var or explicitly set when running |
+
+## TODO: Implement Secret Manager
+
+Currently `GOOGLE_API_KEY` must be set manually after each Cloud Run deployment. Implement Google Cloud Secret Manager:
+
+```bash
+# 1. Create secret
+echo -n "YOUR_API_KEY" | gcloud secrets create GOOGLE_API_KEY --data-file=-
+
+# 2. Grant Cloud Run access
+gcloud secrets add-iam-policy-binding GOOGLE_API_KEY \
+  --member="serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+
+# 3. Update cloudbuild.yaml to reference secret (not the actual value)
+# --set-secrets="GOOGLE_API_KEY=GOOGLE_API_KEY:latest"
+```
