@@ -1,21 +1,21 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', 'gcr.io/icpgenerator/customer-profile-app', '.' ]
+  args: [ 'build', '-t', 'gcr.io/icpgenerator/icp-generator', '.' ]
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'push', 'gcr.io/icpgenerator/customer-profile-app' ]
+  args: [ 'push', 'gcr.io/icpgenerator/icp-generator' ]
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
   args:
   - 'run'
   - 'deploy'
-  - 'customer-profile-app'
+  - 'icp-generator'
   - '--image'
-  - 'gcr.io/icpgenerator/customer-profile-app'
+  - 'gcr.io/icpgenerator/icp-generator'
   - '--region'
   - 'us-west1'
   - '--platform'
   - 'managed'
   - '--allow-unauthenticated'
 images:
-- 'gcr.io/icpgenerator/customer-profile-app'
+- 'gcr.io/icpgenerator/icp-generator'
 
